@@ -1,7 +1,30 @@
 import { useEffect, useState } from 'react'
 import Person from './components/Person'
 import personService from './services/persons'
+import './index.css'
 
+
+const Message = ({message}) => {
+
+  if (message==null) return null;
+
+  return (
+    <div className='message'>
+      {message}
+    </div>
+  );
+}
+
+const ErrorMessage = ({error}) => {
+
+  if (error==null) return null;
+
+  return (
+    <div className='error'>
+      {error}
+    </div>
+  );
+}
 
 const Filter = ({newFilter, setNewFilter}) => {
 
@@ -30,7 +53,7 @@ const AddName = ({newName, newNum, setNewName, setNewNum, persons, setPersons, u
           updatePerson(newName, newNum);
         }
         else{
-          const newPersonObject = {name:newNum, number:newName, id:persons.length+1};
+          const newPersonObject = {name:newName, number:newNum, id:persons.length+1};
 
           personService
           .create(newPersonObject)
@@ -61,6 +84,8 @@ const App = () => {
   const [newName, setNewName] = useState('');
   const [newNum, setNewNum] = useState('');
   const [newFilter, setNewFilter] = useState('');
+  const [message, setMessage] = useState('Notify');
+  const [errorMessage, setErrorMessage] = useState();
 
   useEffect(() =>
     {personService
@@ -78,6 +103,10 @@ const App = () => {
         .remove(id)
         .then(response => {
             setPersons(persons.filter(person => id !== person.id))
+            setMessage(`Deleted ${name}`)
+            setTimeout(() => {
+              setMessage(null)
+            }, 4000);
         })
     }
   }
@@ -90,6 +119,17 @@ const App = () => {
         .update(personObject)
         .then(response => {
           setPersons(persons.map(person => personObject.id !== person.id ? person : response))
+          setMessage(`Updated ${name}`);
+          setTimeout(() => {
+            setMessage(null)
+          }, 4000);
+        })
+        .catch(error => {
+          setMessage(null)
+          setErrorMessage(`Information of ${name} has already been deleted from the server`)
+          setTimeout(() => {
+            setErrorMessage(null)
+          }, 4000);
         })
     }
   }
@@ -99,6 +139,8 @@ const App = () => {
     return (
         <div>
           <h2>Phonebook</h2>
+          <Message message={message}/>
+          <ErrorMessage error={errorMessage}/>
           <Filter newFilter={newFilter} setNewFilter={setNewFilter}/>
           <AddName newName = {newName} newNum={newNum} setNewName={setNewName} setNewNum={setNewNum} persons={persons} setPersons={setPersons} updatePerson={updatePerson}/>
 
